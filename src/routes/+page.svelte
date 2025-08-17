@@ -1,0 +1,21 @@
+<script>
+    import { page } from "$app/state";
+    async function test(){
+        console.log('working')
+    const schemaResponse = await fetch(`${page.url.origin}/api/agent/v1/generate`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        prompt: 'a table',
+                        questionOnly: false
+                    })
+                });
+                console.log(await schemaResponse.json())
+                }
+</script>
+
+<h1>Welcome to Spellshape Agent API</h1>
+<p>Visit <a href="https://spellshape.com">spellshape.com</a> to learn more</p>
+<!-- <button onclick={test}>test</button> -->
