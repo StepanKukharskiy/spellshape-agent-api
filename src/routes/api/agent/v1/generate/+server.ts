@@ -3,6 +3,11 @@ import OpenAI from "openai";
 import { OPENAI_API_TOKEN } from '$env/static/private';
 import { systemPrompt } from "$lib/systemPrompt.js";
 import { validateApiKey, logUsage } from '$lib/auth.js';
+import { handleCORS, addCORSHeaders } from '$lib/cors.js';
+
+export async function OPTIONS() {
+  return handleCORS();
+}
 
 export async function POST({ request }) {
     // Validate API key first
@@ -166,13 +171,15 @@ Be helpful and educational while maintaining clear structure.`;
             throw new Error("AI response is not a valid object");
         }
 
-        return new Response(JSON.stringify(generatedSchema), {
+        let result = new Response(JSON.stringify(generatedSchema), {
             status: 200,
             headers: {
                 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
                 'Access-Control-Allow-Headers': 'Content-Type',
             }
         });
+
+        return addCORSHeaders(result);
 
     } catch (err) {
         console.error('Generate JSON error:', err);

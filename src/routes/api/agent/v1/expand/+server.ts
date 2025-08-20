@@ -1,6 +1,11 @@
 import OpenAI from "openai";
 import { OPENAI_API_TOKEN } from '$env/static/private';
 import { validateApiKey, logUsage } from "$lib/auth.js";
+import { handleCORS, addCORSHeaders } from '$lib/cors.js';
+
+export async function OPTIONS() {
+  return handleCORS();
+}
 
 const fewShotPrompt = `You are a detail-oriented 3D-scene prompt writer.
 Take a terse object description and expand it into a clear, concise brief that covers dimensions, materials, components, layout logic, style references and parametric controls.
@@ -79,7 +84,7 @@ export async function POST({ request }) {
         });
 
 
-        return new Response(JSON.stringify({
+        let result = new Response(JSON.stringify({
             prompt: response.choices[0].message.content
         }), {
             status: 200,
@@ -88,6 +93,7 @@ export async function POST({ request }) {
                 'Access-Control-Allow-Headers': 'Content-Type',
             }
         });
+        return addCORSHeaders(result);
     } catch (err) {
         console.error('Expand prompt error:', err);
         return new Response(JSON.stringify({ error: 'Failed to expand prompt' }), {
