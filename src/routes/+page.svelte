@@ -5,6 +5,7 @@
     const schemaResponse = await fetch(`${page.url.origin}/api/agent/v1/generate`, {
                     method: 'POST',
                     headers: {
+                        'X-API-Key': 'fortuna-major',
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({

@@ -2,11 +2,22 @@
 import OpenAI from "openai";
 import { OPENAI_API_TOKEN } from '$env/static/private';
 import { systemPrompt } from "$lib/systemPrompt.js";
+import { validateApiKey, logUsage } from '$lib/auth.js';
 
 export async function POST({ request }) {
+    // Validate API key first
+    const auth = await validateApiKey(request);
+    if (!auth.valid) {
+        return auth.response!;
+    }
+
+    
+    
     try {
         const { prompt, schema, regenerateFromPrompt, chatHistory, questionOnly } = await request.json();
-        
+        // Log the request
+    logUsage(auth.userId, auth.keyId, '/api/generate', 'POST', prompt);
+
         const openai = new OpenAI({
             apiKey: OPENAI_API_TOKEN,
         });

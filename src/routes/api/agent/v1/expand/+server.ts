@@ -1,5 +1,6 @@
 import OpenAI from "openai";
 import { OPENAI_API_TOKEN } from '$env/static/private';
+import { validateApiKey, logUsage } from "$lib/auth.js";
 
 const fewShotPrompt = `You are a detail-oriented 3D-scene prompt writer.
 Take a terse object description and expand it into a clear, concise brief that covers dimensions, materials, components, layout logic, style references and parametric controls.
@@ -48,9 +49,19 @@ Now expand the next request using the same voice and format.
 ► User prompt: "`;
 
 export async function POST({ request }) {
+    // Validate API key first
+    const auth = await validateApiKey(request);
+    if (!auth.valid) {
+        return auth.response!;
+    }
+
+    
+
     try {
         const { prompt } = await request.json();
-        
+        // Log the request
+    logUsage(auth.userId, auth.keyId, '/api/expand', 'POST', prompt);
+
         const openai = new OpenAI({
             apiKey: OPENAI_API_TOKEN,
         });
