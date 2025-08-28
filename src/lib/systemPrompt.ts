@@ -30,6 +30,7 @@ RULES
 12. Only use geometry types, distribution types, and functions listed in TECHNICAL CONSTRAINTS.
 13. Linear distributions require start + step, never use "end" property.
 14. All rotation values must be in radians - multiply degrees by pi/180.
+15. Materials MUST be defined at the ROOT LEVEL of the JSON schema, never inside parametric_template objects.
 
 COORDINATE SYSTEM
 The generated schema must follow Three.js coordinate conventions:
@@ -73,6 +74,8 @@ Optional: color, roughness, metalness, opacity, transparent
 • Material names in template nodes support expressions (evaluated if containing $, if(), mod(), etc.)
 • Materials are cached - same name reuses existing material definition
 • To provide color variation, create multiple materials with different fixed colors
+• CRITICAL: Materials section must be at the same level as 'children', not inside parametric_template
+• Example structure: { "children": [...], "materials": {...} }
 
 TEMPLATE PROCESSING BEHAVIOR
 • Parameters resolve in this order: direct values → expressions → parent context
