@@ -1128,6 +1128,237 @@ Assistant JSON:
     }
   }
 }
+  
+────────────────────────────────────────────────────────────────────────
+User prompt:
+“table with rounded corners”
+
+Assistant JSON:
+
+{
+  "version": "3.1",
+  "type": "parametric_scene",
+  "children": [
+    {
+      "type": "parametric_template",
+      "id": "rounded_table",
+      "parameters": {
+        "table_length": {
+          "value": 1.6,
+          "type": "number",
+          "min": 0.6,
+          "max": 3,
+          "step": 0.05,
+          "group": "dimensions"
+        },
+        "table_width": {
+          "value": 0.9,
+          "type": "number",
+          "min": 0.5,
+          "max": 1.6,
+          "step": 0.05,
+          "group": "dimensions"
+        },
+        "top_thickness": {
+          "value": 0.04,
+          "type": "number",
+          "min": 0.02,
+          "max": 0.12,
+          "step": 0.005,
+          "group": "dimensions"
+        },
+        "corner_radius": {
+          "value": 0.05,
+          "type": "number",
+          "min": 0,
+          "max": 0.25,
+          "step": 0.005,
+          "group": "dimensions"
+        },
+        "leg_height": {
+          "value": 0.72,
+          "type": "number",
+          "min": 0.4,
+          "max": 0.9,
+          "step": 0.01,
+          "group": "legs"
+        },
+        "leg_radius": {
+          "value": 0.02,
+          "type": "number",
+          "min": 0.01,
+          "max": 0.06,
+          "step": 0.005,
+          "group": "legs"
+        },
+        "leg_inset": {
+          "value": 0.06,
+          "type": "number",
+          "min": 0,
+          "max": 0.3,
+          "step": 0.01,
+          "group": "legs"
+        },
+        "skirt_thickness": {
+          "value": 0.02,
+          "type": "number",
+          "min": 0.01,
+          "max": 0.06,
+          "step": 0.005,
+          "group": "legs"
+        },
+        "show_apron": {
+          "value": 1,
+          "type": "integer",
+          "min": 0,
+          "max": 1,
+          "step": 1,
+          "group": "materials"
+        }
+      },
+      "expressions": {
+        "tabletop_y": "$leg_height + $top_thickness/2",
+        "apron_length": "max($table_length - $leg_inset*2, 0.01)",
+        "apron_width": "max($table_width - $leg_inset*2, 0.01)",
+        "corner_r_clamped": "min($corner_radius, min($table_length, $table_width) / 2)"
+      },
+      "template": [
+        {
+          "type": "extrude",
+          "id": "tabletop",
+          "material": "wood_oak",
+          "dimensions": {
+            "outer": [
+              {
+                "kind": "rounded_rect",
+                "cx": 0,
+                "cy": 0,
+                "width": "$table_length",
+                "height": "$table_width",
+                "r": "$corner_r_clamped",
+                "segments": 24
+              }
+            ],
+            "options": {
+              "depth": "$top_thickness",
+              "bevelEnabled": false,
+              "curveSegments": 12,
+              "steps": 1
+            }
+          },
+          "position": [
+            0,
+            "$tabletop_y",
+            0
+          ],
+"rotation": ["pi/2", 0, 0]
+        },
+        {
+          "type": "group",
+          "id": "apron_group",
+          "visible": "$show_apron == 1",
+          "children": [
+            {
+              "type": "box",
+              "id": "apron",
+              "material": "wood_oak",
+              "dimensions": [
+                "$apron_length",
+                "$skirt_thickness",
+                "$apron_width"
+              ],
+              "position": [
+                0,
+                "$leg_height - $skirt_thickness/2",
+                0
+              ]
+            }
+          ]
+        },
+        {
+          "type": "repeat",
+          "id": "legs",
+          "count": 4,
+          "distribution": {
+            "type": "grid",
+            "positions": [
+              [
+                "-$table_length/2 + $leg_inset",
+                "$leg_height/2",
+                "-$table_width/2 + $leg_inset"
+              ],
+              [
+                "$table_length/2 - $leg_inset",
+                "$leg_height/2",
+                "-$table_width/2 + $leg_inset"
+              ],
+              [
+                "-$table_length/2 + $leg_inset",
+                "$leg_height/2",
+                "$table_width/2 - $leg_inset"
+              ],
+              [
+                "$table_length/2 - $leg_inset",
+                "$leg_height/2",
+                "$table_width/2 - $leg_inset"
+              ]
+            ]
+          },
+          "children": [
+            {
+              "type": "cylinder",
+              "id": "leg",
+              "material": "metal_steel",
+              "dimensions": [
+                "$leg_radius",
+                "$leg_radius",
+                "$leg_height"
+              ],
+              "position": [
+                0,
+                0,
+                0
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "materials": {
+    "wood_oak": {
+      "type": "standard",
+      "color": "#a27c4b",
+      "roughness": 0.7,
+      "metalness": 0.05
+    },
+    "metal_steel": {
+      "type": "standard",
+      "color": "#b0b0b0",
+      "roughness": 0.4,
+      "metalness": 0.9
+    }
+  },
+  "ui_controls": {
+    "groups": {
+      "dimensions": {
+        "label": "📏 Dimensions",
+        "order": 1,
+        "default_open": true
+      },
+      "legs": {
+        "label": "🦴 Legs & Apron",
+        "order": 2,
+        "default_open": false
+      },
+      "materials": {
+        "label": "🎨 Materials / Visibility",
+        "order": 3,
+        "default_open": false
+      }
+    }
+  }
+}
 ────────────────────────────────────────────────────────────────────────
 
 
