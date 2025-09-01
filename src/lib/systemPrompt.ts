@@ -52,6 +52,28 @@ GEOMETRY TYPES
 • plane: [width, height]
 • torus: [radius, tube, radial_segments?, tubular_segments?]
 • cone: [radius, height, radial_segments?]
+• extrude: { outer: [...], holes?: [...], options?: {...} }
+  - outer: array of [x,y] points or 2D helper objects
+  - holes: array of hole polygons (same format as outer)
+  - options: depth, steps, curveSegments, bevelEnabled, etc.
+  - extrudePath: optional Three.js curve for path extrusion
+
+
+
+2D GEOMETRY IN EXTRUDE DIMENSIONS
+• Use helper objects in outer/holes arrays: {"kind": "arc", "cx": 0, "cy": 0, "r": "$radius", "a0": 0, "a1": "pi"}
+• Supported kinds: arc, bezier, ellipse, polygon, spline, line, polyline, star, rect, rounded_rect, 
+  offset, mirror, transform, spiral, koch_snowflake
+• Mix helpers with regular [x,y] points in same array
+• All parameters in helper objects support expressions with $ references
+• Example: "outer": [{"kind": "rect", "cx": 0, "cy": 0, "width": "$w", "height": "$h"}, [1,1], [2,1]]
+
+TEMPLATE PROCESSING BEHAVIOR
+• 2D helpers in dimensions.outer/holes are automatically expanded to point arrays
+• Helper objects are processed with current parameter context
+• All numeric properties in helpers support expression evaluation
+• Resulting points are used to create Three.js Shape and Path objects
+• ExtrudeGeometry handles the final 3D conversion
 
 DISTRIBUTION TYPES
 • linear: requires "axis" ("x"|"y"|"z" OR [0,1,0] OR numeric 0/1/2), "start" (number), "step" (number)  
@@ -65,6 +87,25 @@ Available: sin, cos, tan, abs, sqrt, pow, min, max, floor, ceil, round, clamp, l
 • HSV color conversion: hsv_to_hex(h, s, v) where h can be 0-360 or 0-1, s & v are 0-1
 • Array utilities: alternating(index, ...values) cycles through values, nth(array, index) with wraparound
 • All angles in expressions must be in radians (use * pi/180 for degrees)
+
+2D GEOMETRY HELPERS (for extrude outer/holes arrays):
+• arc2d(cx, cy, r, a0, a1, clockwise, segments) - circular arc points
+• bezier2d(points, segments) - quadratic/cubic Bézier curve (3 or 4 control points)
+• polygon2d(cx, cy, r, sides, rotation) - regular polygon points
+• ellipse2d(cx, cy, rx, ry, a0, a1, segments) - elliptical arc points
+• catmullRom2d(points, segments, tension) - smooth spline through points
+• line2d(p0, p1, segments) - line segment with optional subdivision
+• polyline2d(points) - connected line segments
+• regularStar2d(cx, cy, rOuter, rInner, points, rotation) - star polygon
+• rect2d(cx, cy, width, height, rotation) - rectangular points
+• roundedRect2d(cx, cy, w, h, r, segments, rotation) - rounded rectangle
+• offset2d(points, distance) - offset polygon by distance
+• mirror2d(points, axis, value) - mirror points across axis ('x'|'y')
+• transform2d(points, matrix) - apply 3x3 transformation matrix
+• spiral2d(cx, cy, r0, turns, expansion, pointsPerTurn) - spiral points
+• kochSnowflake2d(p0, p1, level) - Koch snowflake fractal segment
+
+All geometry helpers return arrays of [x,y] points for use in extrude dimensions.
 
 MATERIAL PROPERTIES
 Required: "type": "standard"
@@ -1035,29 +1076,55 @@ Assistant JSON:
   "type": "parametric_scene",
   "children": [
     {
-      "type": "parametric_template",
-      "id": "duct_run",
-      "parameters": {
-        "main_length":   { "value": 4.0, "type": "number", "min": 2.0, "max": 10.0, "step": 0.5,  "group": "layout" },
-        "branch_length": { "value": 1.5, "type": "number", "min": 0.5, "max": 4.0,  "step": 0.25, "group": "layout" },
-        "height":        { "value": 0.4, "type": "number", "min": 0.2, "max": 1.0,  "step": 0.05, "group": "elevation" },
-        "diameter":      { "value": 0.3, "type": "number", "min": 0.15,"max": 0.6,  "step": 0.05, "group": "sizing" }
-      },
-      "expressions": {
-        "main_y": "$height",
-        "branch_step": "$main_length / 4"
-      },
-      "template": [ … ]
-    }
+          "type": "parametric_template",
+          "id": "duct_template",
+          "parameters": {
+            "ductWidth": { "type": "number", "value": 0.8, "min": 0.2, "max": 1.2, "step": 0.05, "label": "Duct width", "group": "sizing" },
+            "ductHeight": { "type": "number", "value": 0.4, "min": 0.1, "max": 0.9, "step": 0.05, "label": "Duct height", "group": "sizing" }
+          },
+          "template": [
+            {
+              "id": "duct1",
+              "type": "extrude",
+              "material": "duct",
+              "position": [0, 3.0, 0],
+              "rotation": [0, 0, 0],
+              "dimensions": {
+                "outer": [
+                  ["-$ductHeight/2", "-$ductWidth/2"],
+                  ["$ductHeight/2", "-$ductWidth/2"],
+                  ["$ductHeight/2", "$ductWidth/2"],
+                  ["-$ductHeight/2", "$ductWidth/2"]
+                ],
+                "options": {
+                  "steps": 180,
+                  "bevelEnabled": false,
+                  "extrudePath": {
+                    "__spellshape_path": true,
+                    "spec": {
+                      "type": "segments",
+                      "start": [0, 0, 0],
+                      "segments": [
+                        { "kind": "line", "length": 6, "direction": [1, 0, 0] },
+                        { "kind": "turn", "angle": 90, "radius": 2 },
+                        { "kind": "line", "length": 4, "direction": [0, 0, 1] },
+                        { "kind": "elevation", "length": 3, "endHeight": 1, "curveType": "smooth" },
+                        { "kind": "line", "length": 4, "direction": [0, 0, 1] }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
   ],
   "materials": {
     "galv_steel": { "type": "standard", "color": "#9ea1a3", "roughness": 0.3, "metalness": 1.0 }
   },
   "ui_controls": {
     "groups": {
-      "layout":    { "label": "📏 Layout",    "order": 1, "default_open": true },
-      "elevation": { "label": "↕️ Elevation", "order": 2 },
-      "sizing":    { "label": "📐 Sizing",    "order": 3 }
+      "sizing":    { "label": "📐 Sizing",    "order": 1 }
     }
   }
 }
