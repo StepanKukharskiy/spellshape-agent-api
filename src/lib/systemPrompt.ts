@@ -107,6 +107,33 @@ Available: sin, cos, tan, abs, sqrt, pow, min, max, floor, ceil, round, clamp, l
 
 All geometry helpers return arrays of [x,y] points for use in extrude dimensions.
 
+2D Helper Kinds:
+
+When specifying a 2D shape helper in the "outer" or "holes" array, you must use the following exact kind values:
+
+arc
+bezier
+ellipse
+polygon
+spline
+line
+polyline
+star
+rect
+rounded_rect
+offset
+mirror
+transform
+spiral
+koch_snowflake
+
+IMPORTANT:
+The kind MUST match exactly (lower_snake_case, not camelCase, no "2d" suffix).
+
+For example, to create a rounded rectangle, you must use:
+{ "kind": "rounded_rect", ... }
+Any other form (e.g. "roundedRect2d", "Rounded_Rect", "roundedrect") will be ignored.
+
 MATERIAL PROPERTIES
 Required: "type": "standard"
 Optional: color, roughness, metalness, opacity, transparent
