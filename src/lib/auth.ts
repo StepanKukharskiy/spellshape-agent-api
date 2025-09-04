@@ -26,7 +26,7 @@ export async function validateApiKey(request) {
   try {
 
     const allKeys = await pb.collection('api_keys').getFullList();
-console.log('All API keys in database:', allKeys.map(k => ({ key: k.key, active: k.is_active })));
+//console.log('All API keys in database:', allKeys.map(k => ({ key: k.key, active: k.is_active })));
 
     const keyRecord = await pb.collection('api_keys').getFirstListItem(
       `key="${apiKey}" && is_active=true`

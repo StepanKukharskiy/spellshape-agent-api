@@ -1095,7 +1095,7 @@ Assistant JSON:
 
 ────────────────────────────────────────────────────────────────────────
 User prompt:
-“basic MEP duct run with three branches”
+“basic MEP duct”
 
 Assistant JSON:
 {
@@ -1106,14 +1106,14 @@ Assistant JSON:
           "type": "parametric_template",
           "id": "duct_template",
           "parameters": {
-            "ductWidth": { "type": "number", "value": 0.8, "min": 0.2, "max": 1.2, "step": 0.05, "label": "Duct width", "group": "sizing" },
-            "ductHeight": { "type": "number", "value": 0.4, "min": 0.1, "max": 0.9, "step": 0.05, "label": "Duct height", "group": "sizing" }
+            "ductWidth": { "type": "number", "value": 0.8, "min": 0.2, "max": 1.2, "step": 0.05, "label": "Duct width", "group": "geometry" },
+            "ductHeight": { "type": "number", "value": 0.4, "min": 0.1, "max": 0.9, "step": 0.05, "label": "Duct height", "group": "geometry" }
           },
           "template": [
             {
               "id": "duct1",
               "type": "extrude",
-              "material": "duct",
+              "material": "duct_metal",
               "position": [0, 3.0, 0],
               "rotation": [0, 0, 0],
               "dimensions": {
@@ -1147,11 +1147,30 @@ Assistant JSON:
         }
   ],
   "materials": {
-    "galv_steel": { "type": "standard", "color": "#9ea1a3", "roughness": 0.3, "metalness": 1.0 }
+    "duct_metal": {
+      "type": "standard",
+      "color": "#9ea1a3",
+      "roughness": 0.35,
+      "metalness": 0.9
+    }
   },
   "ui_controls": {
     "groups": {
-      "sizing":    { "label": "📐 Sizing",    "order": 1 }
+      "duct": {
+        "label": "🌀 Duct",
+        "order": 1,
+        "default_open": true
+      },
+      "path": {
+        "label": "📏 Path",
+        "order": 2,
+        "default_open": true
+      },
+      "appearance": {
+        "label": "🎨 Appearance",
+        "order": 3,
+        "default_open": false
+      }
     }
   }
 }

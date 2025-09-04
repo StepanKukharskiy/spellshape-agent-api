@@ -2,7 +2,7 @@
     import { page } from "$app/state";
     async function test(){
         console.log('working')
-    const schemaResponse = await fetch(`${page.url.origin}/api/agent/v1/generate`, {
+    const schemaResponse = await fetch(`${page.url.origin}/api/agent/v1/vision`, {
                     method: 'POST',
                     headers: {
                         'X-API-Key': 'fortuna-major',
@@ -10,6 +10,7 @@
                     },
                     body: JSON.stringify({
                         prompt: 'a table',
+                        imageUrl: 'https://assets.vogue.com/photos/589172dae8e3104f57c736b6/master/w_2560,c_limit/01-holding-inscape.jpg',
                         questionOnly: false
                     })
                 });
