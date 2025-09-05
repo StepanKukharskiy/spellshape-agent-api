@@ -8,59 +8,33 @@ export async function OPTIONS() {
 }
 
 const fewShotPrompt = `You are a detail‑oriented vision scene surveyor.
-Task: Given one or more images, 1) identify the domain, 2) produce a structured, objective description for parametric 3D reconstruction.
+Task: Given one or more images, 1) identify the domain, 2) produce a structured, objective description for parametric 3D reconstruction suitable for downstream schema generation. Keep under 180 words. Use metric units and hex colors. Report only what is visible; if uncertain, write “unknown”.
 
-Process:
+Process
+Step 1: Domain detection (single label): [building_exterior, building_interior, architectural_element, furniture_object, mechanical_object, consumer_object, landscape_nature, vegetation_closeup, streetscape_urban, diagram_plan, artwork_installation, unknown].
+Step 2: Describe using shared headings with domain focus. Do not assume any engine’s up/forward; describe axes generically (“long axis”, “depth direction”). Prefer ratios if no scale reference. Avoid inferring occluded geometry.
 
-    Step 1: Domain detection (single label): one of [building_exterior, building_interior, architectural_element, furniture_object, mechanical_object, consumer_object, landscape_nature, vegetation_closeup, streetscape_urban, diagram_plan, artwork_installation, unknown].
-    Step 2: Apply the matching checklist below. Report only what is visible; if uncertain, write “unknown”. Use metric units and hex colors. Keep under 180 words unless asked for more.
-
-Shared output headings (always present):
-
+Output headings (always present)
     Domain and scale
     Layout and axes
     Structure/elements
     Surfaces and materials
     Objects/fixtures
-    Lighting and environment
     Notes for parametrization
 
-Domain checklists (augment headings with domain‑specific details):
-    building_exterior: massing (L×W×H), floor count, façade grid/modules, openings, roof type, setbacks, primary materials/colors, site context and ground plane; param notes: footprint, floor height, bay width, panel size.
-    building_interior: room size (L×W×H), openings, partitions, ceiling type, finishes; furniture zones; param: room dimensions, door/window sizes, cabinet modules.
-    architectural_element: element type (stair, column, wall, façade panel), module/spacing, profiles/thickness; param: module count, spacing, thickness, profile size.
-    furniture_object / consumer_object / mechanical_object: bounding box (W×D×H), components, joinery/fasteners visible, dominant materials; param: key dimensions, counts, spacing.
-    landscape_nature / vegetation_closeup: terrain slope, layers (groundcover/shrubs/trees), canopy height, trunk spacing, materials (soil, stone, water); param: slope %, density, spacing, height ranges.
-    streetscape_urban: right‑of‑way width, sidewalk, curb, lanes, street furniture, planting modules; param: lane widths, sidewalk width, tree spacing, furniture intervals.
-    diagram_plan: scale indicators, grid, annotations, symbols; param: grid spacing, legend categories.
+Universal characteristics to capture
+    Primitive forms: boxes, cylinders, spheres, planes, extrusions, tori; counts and approximate proportions/ratios.
 
-Formatting rules:
-    Use hex colors for dominant surfaces; approximate with “~” when uncertain (e.g., “~3.0 m”). Prefer ratios if no scale reference.
-    Do not assume any engine’s up/forward; describe axes generically (e.g., “long axis”, “depth direction”).
-    Avoid inferring occluded geometry.
+Spatial organization: repetition (linear/grid/radial), symmetry (mirror/radial/rotational), stacking, alignment, offsets.
+Proportions and spacing: aspect ratios, module size, spacing as fractions of observed extents when scale unknown.
+Material cues: 2–4 dominant hex colors, finish (matte/glossy/metallic), opacity/translucency, texture regularity.
+Parametric levers: counts, spacings, dimensions (W/D/H or radius/thickness), angles, offsets, repetition pattern, optional jitter/noise ranges for variability.
 
-Examples
-
-    building_interior (living room)
-    Domain and scale: building_interior; ~5.5×4.0×2.7 m; flat ceiling.
-    Layout and axes: seating along long axis; circulation behind sofa.
-    Structure/elements: window wall on long side; interior door on short side.
-    Surfaces and materials: oak floor (#a37b4f); off‑white walls (#f2f2f2); white ceiling (#ffffff).
-    Objects/fixtures: 3‑seat sofa (~2.2×0.9 m); coffee table (~1.1×0.6 m); rug (~2.4×1.6 m).
-    Lighting and environment: daylight from window; soft shadows.
-    Notes for parametrization: room L/W/H; window width/height; sofa width/depth; rug size; sofa‑to‑window offset.
-
-    furniture_object (chair)
-    Domain and scale: furniture_object; ~0.45×0.45×0.8 m overall.
-    Layout and axes: seat centered; back aligned on depth axis.
-    Structure/elements: seat slab; planar backrest; 4 cylindrical legs.
-    Surfaces and materials: oak seat/back (#a27c4b); brushed steel legs (#b0b0b0).
-    Objects/fixtures: leg inset ~0.03 m; back thickness ~0.04 m.
-    Lighting and environment: uniform soft light; no hard shadows.
-    Notes for parametrization: seat W/D/T; back H/T; leg radius/height/inset.
+Formatting rules
+    Use hex colors (#rrggbb). Use “~” for approximations or ratios when scale is unknown. Describe axes generically. Avoid assumptions about hidden parts. Keep objective and compact.
 
 Instruction
-Analyze the image(s). Output the 7 headings in order. If “return_json” is specified, use the JSON schema above.`;
+Analyze the image(s). Output the 7 headings in order. If “return_json” is specified, use the project’s provided JSON schema externally; do not embed engine-specific keys here.`;
 
 export async function POST({ request }) {
     // Validate API key first
@@ -86,6 +60,10 @@ export async function POST({ request }) {
             model: "gpt-5-mini",
             messages: [
                 {
+            role: "system", 
+            content: fewShotPrompt
+        },
+                {
                     role: "user",
                     content: [
                         {
@@ -94,7 +72,7 @@ export async function POST({ request }) {
                                 url: imageUrl
                             }
                         },
-                        { type: "text", text: fewShotPrompt },
+                        { type: "text", text: "" },
                         
                     ]
                 }

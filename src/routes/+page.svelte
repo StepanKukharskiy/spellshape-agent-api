@@ -10,7 +10,7 @@
                     },
                     body: JSON.stringify({
                         prompt: 'a table',
-                        imageUrl: 'https://assets.vogue.com/photos/589172dae8e3104f57c736b6/master/w_2560,c_limit/01-holding-inscape.jpg',
+                        imageUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSnO89DlUhKcTRg4IteNYEfCFMk5_ZPsPIGnw&s',
                         questionOnly: false
                     })
                 });
