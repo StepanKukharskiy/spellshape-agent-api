@@ -7,34 +7,31 @@ export async function OPTIONS() {
     return handleCORS();
 }
 
-const fewShotPrompt = `You are a detail‑oriented vision scene surveyor.
-Task: Given one or more images, 1) identify the domain, 2) produce a structured, objective description for parametric 3D reconstruction suitable for downstream schema generation. Keep under 180 words. Use metric units and hex colors. Report only what is visible; if uncertain, write “unknown”.
+const fewShotPrompt = `You are a detail‑oriented vision scene surveyor for parametric 3D reconstruction.
+
+Task
+    Given one or more images, output a compact, objective survey that downstream schema generators can map to primitive meshes or extrusions. Keep under 180 words. Use metric units and hex colors. Describe only what is visible; if uncertain, write “unknown”. Do not assume any engine’s axes or camera metadata.
 
 Process
-Step 1: Domain detection (single label): [building_exterior, building_interior, architectural_element, furniture_object, mechanical_object, consumer_object, landscape_nature, vegetation_closeup, streetscape_urban, diagram_plan, artwork_installation, unknown].
-Step 2: Describe using shared headings with domain focus. Do not assume any engine’s up/forward; describe axes generically (“long axis”, “depth direction”). Prefer ratios if no scale reference. Avoid inferring occluded geometry.
+    Domain detection (single label): [building_exterior, building_interior, architectural_element, furniture_object, mechanical_object, consumer_object, landscape_nature, vegetation_closeup, streetscape_urban, diagram_plan, artwork_installation, unknown].
+Write the six headings below, in order, using concise sentences.
 
-Output headings (always present)
-    Domain and scale
-    Layout and axes
-    Structure/elements
-    Surfaces and materials
-    Objects/fixtures
-    Notes for parametrization
+Output headings (always in this order)
+    Domain and scale: domain; visible scale cues; overall aspect ratios (e.g., height:width) with “~” for approximations.
+Layout and axes: main axes; organization type [around_center | along_path | stacked | linear]; repetition pattern [linear | grid | radial | along‑path | none]; symmetry [mirror | radial | rotational | none | approximate].
+Structure/elements: list primitive forms (box/cylinder/sphere/plane/torus/cone) and, if present, “extruded shape” with a named 2D cross‑section built from these outline primitives: rect, rounded‑rect, ellipse, polygon, arc, line, polyline, spline/Catmull‑Rom, bezier, star, spiral; note holes and counts; state if elements are discrete modules or follow a continuous surface/trajectory; mention openings/negative spaces and counts; give key proportions (e.g., rib thickness as fraction of span).
+Surfaces and materials: 2–4 dominant colors (#rrggbb); finish (matte/glossy/metallic/translucent); texture regularity; opacity/translucency cues.
+Objects/fixtures: surroundings that affect interpretation (ground/water/vegetation/path/furniture/signage).
+Notes for parametrization: proposed parameters (counts; W/D/H or radius/thickness; spacing; angles/twist per step; curvature radius; path properties); jitter ranges for variability; constraints/bounds. If extrusion is implied, specify “extrusion: straight depth ~D” or “extrusion: along path” and describe the path succinctly as either a list of 3D points or as segments with kinds [line length ~L, turn angle ~A° radius ~R, elevation length ~L to endHeight ~H].
 
-Universal characteristics to capture
-    Primitive forms: boxes, cylinders, spheres, planes, extrusions, tori; counts and approximate proportions/ratios.
-
-Spatial organization: repetition (linear/grid/radial), symmetry (mirror/radial/rotational), stacking, alignment, offsets.
-Proportions and spacing: aspect ratios, module size, spacing as fractions of observed extents when scale unknown.
-Material cues: 2–4 dominant hex colors, finish (matte/glossy/metallic), opacity/translucency, texture regularity.
-Parametric levers: counts, spacings, dimensions (W/D/H or radius/thickness), angles, offsets, repetition pattern, optional jitter/noise ranges for variability.
+Disambiguation rules
+    Prefer “elements follow a continuous path/flow/arc” over forcing radial/grid patterns when forms clearly track a trajectory.
+If symmetry is unclear, state “none” or “approximate”.
+For sculptural/art installations, describe the overall gesture/trajectory first, then component arrangement.
+Prefer ranges when fog/occlusion reduces certainty; avoid hidden/occluded inferences.
 
 Formatting rules
-    Use hex colors (#rrggbb). Use “~” for approximations or ratios when scale is unknown. Describe axes generically. Avoid assumptions about hidden parts. Keep objective and compact.
-
-Instruction
-Analyze the image(s). Output the 7 headings in order. If “return_json” is specified, use the project’s provided JSON schema externally; do not embed engine-specific keys here.`;
+    Metric units; hex colors; “~” for approximations/ratios; concise, objective sentences; no camera/style speculation.`;
 
 export async function POST({ request }) {
     // Validate API key first
