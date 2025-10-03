@@ -421,6 +421,104 @@ Calculate positions:
   }
 }
 
+### Example 6: Plus-Shaped Tower with Tapering and Glass Facade
+
+{
+  "version": "3.1",
+  "type": "parametric_scene",
+  "children": [{
+    "type": "parametric_template",
+    "id": "plus_tower",
+    "parameters": {
+      "floors": {"value": 40, "type": "integer", "min": 10, "max": 100, "step": 1, "group": "tower"},
+      "floor_height": {"value": 3.0, "type": "number", "min": 2.5, "max": 4.0, "step": 0.1, "group": "tower"},
+      "arm_length": {"value": 12.0, "type": "number", "min": 6.0, "max": 20.0, "step": 0.5, "group": "form"},
+      "arm_width": {"value": 4.0, "type": "number", "min": 2.0, "max": 8.0, "step": 0.5, "group": "form"},
+      "rotation_per_floor": {"value": 2.0, "type": "number", "min": 0.0, "max": 10.0, "step": 0.5, "group": "rotation"},
+      "taper_factor": {"value": 0.95, "type": "number", "min": 0.8, "max": 1.0, "step": 0.01, "group": "form"}
+    },
+    "expressions": {
+      "slab_thickness": "0.3",
+      "glass_height": "$floor_height - 0.4",
+      "half_width": "$arm_width/2",
+      "arm_extent": "$arm_length + $half_width"
+    },
+    "template": [{
+      "type": "repeat",
+      "id": "floor_repeat",
+      "count": "$floors",
+      "instance_parameters": {
+        "floor": "$index",
+        "progress": "$floor / max(($floors - 1), 1)",
+        "rotation": "$floor * $rotation_per_floor * pi / 180",
+        "scale": "pow($taper_factor, $progress * 10)"
+      },
+      "distribution": {"type": "linear", "axis": "y", "start": "$floor_height/2", "step": "$floor_height"},
+      "children": [{
+        "type": "group",
+        "id": "floor_group",
+        "rotation": [0, "$rotation", 0],
+        "children": [{
+          "type": "extrude",
+          "id": "plus_slab",
+          "material": "concrete_mat",
+          "rotation": ["-pi/2", 0, 0],
+          "dimensions": {
+            "outer": [
+              ["-$half_width * $scale", "$arm_extent * $scale"],
+              ["-$half_width * $scale", "$half_width * $scale"],
+              ["-$arm_extent * $scale", "$half_width * $scale"],
+              ["-$arm_extent * $scale", "-$half_width * $scale"],
+              ["-$half_width * $scale", "-$half_width * $scale"],
+              ["-$half_width * $scale", "-$arm_extent * $scale"],
+              ["$half_width * $scale", "-$arm_extent * $scale"],
+              ["$half_width * $scale", "-$half_width * $scale"],
+              ["$arm_extent * $scale", "-$half_width * $scale"],
+              ["$arm_extent * $scale", "$half_width * $scale"],
+              ["$half_width * $scale", "$half_width * $scale"],
+              ["$half_width * $scale", "$arm_extent * $scale"]
+            ],
+            "options": {"depth": "$slab_thickness", "bevelEnabled": false}
+          }
+        }, {
+          "type": "extrude",
+          "id": "plus_glass",
+          "material": "glass_mat",
+          "rotation": ["-pi/2", 0, 0],
+          "dimensions": {
+            "outer": [
+              ["-$half_width * $scale", "$arm_extent * $scale"],
+              ["-$half_width * $scale", "$half_width * $scale"],
+              ["-$arm_extent * $scale", "$half_width * $scale"],
+              ["-$arm_extent * $scale", "-$half_width * $scale"],
+              ["-$half_width * $scale", "-$half_width * $scale"],
+              ["-$half_width * $scale", "-$arm_extent * $scale"],
+              ["$half_width * $scale", "-$arm_extent * $scale"],
+              ["$half_width * $scale", "-$half_width * $scale"],
+              ["$arm_extent * $scale", "-$half_width * $scale"],
+              ["$arm_extent * $scale", "$half_width * $scale"],
+              ["$half_width * $scale", "$half_width * $scale"],
+              ["$half_width * $scale", "$arm_extent * $scale"]
+            ],
+            "options": {"depth": "$glass_height", "bevelEnabled": false}
+          },
+          "position": [0, "$slab_thickness/2 + $glass_height/2", 0]
+        }]
+      }]
+    }]
+  }],
+  "materials": {
+    "concrete_mat": {"type": "standard", "color": "dcdcdc", "roughness": 0.4, "metalness": 0.05},
+    "glass_mat": {"type": "standard", "color": "a6d8ff", "roughness": 0.05, "metalness": 0.0, "opacity": 0.35, "transparent": true}
+  },
+  "ui_controls": {
+    "groups": {
+      "tower": {"label": "🏢 Tower", "order": 1, "default_open": true},
+      "form": {"label": "📐 Form", "order": 2, "default_open": true},
+      "rotation": {"label": "🌀 Rotation", "order": 3, "default_open": true}
+    }
+  }
+}
 
 ## MODIFICATION MODE
 
@@ -549,6 +647,19 @@ Never use 'end' property – not supported.
     }
   ]
 }
+
+**Plus/Cross shape (non-self-intersecting):**
+
+For architectural plus-shaped floor plates, use clockwise winding with 12 vertices:
+
+"outer": [
+  ["-$w/2", "$L"], ["-$w/2", "$w/2"], ["-$L", "$w/2"],
+  ["-$L", "-$w/2"], ["-$w/2", "-$w/2"], ["-$w/2", "-$L"],
+  ["$w/2", "-$L"], ["$w/2", "-$w/2"], ["$L", "-$w/2"],
+  ["$L", "$w/2"], ["$w/2", "$w/2"], ["$w/2", "$L"]
+]
+
+Where: `$w` = arm width, `$L` = arm extent (length + width/2)
 
 
 ### Conditional Visibility
