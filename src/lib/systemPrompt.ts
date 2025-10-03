@@ -659,7 +659,7 @@ For architectural plus-shaped floor plates, use clockwise winding with 12 vertic
   ["$L", "$w/2"], ["$w/2", "$w/2"], ["$w/2", "$L"]
 ]
 
-Where: `$w` = arm width, `$L` = arm extent (length + width/2)
+Where: '$w' = arm width, '$L' = arm extent (length + width/2)
 
 
 ### Conditional Visibility
