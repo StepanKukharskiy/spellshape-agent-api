@@ -23,6 +23,8 @@ export async function POST({ request }) {
         // Log the request
     logUsage(auth.userId, auth.keyId, '/api/generate', 'POST', prompt);
 
+      console.log(prompt)
+
         const openai = new OpenAI({
             apiKey: OPENAI_API_TOKEN,
         });
