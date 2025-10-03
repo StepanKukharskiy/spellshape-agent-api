@@ -20,4 +20,4 @@
 
 <h1>Welcome to Spellshape Agent API</h1>
 <p>Visit <a href="https://spellshape.com">spellshape.com</a> to learn more</p>
-<!-- <button onclick={test}>test</button> -->
+<button onclick={test}>test</button>
