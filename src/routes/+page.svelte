@@ -2,7 +2,7 @@
     import { page } from "$app/state";
     async function test(){
         console.log('working')
-    const schemaResponse = await fetch(`${page.url.origin}/api/agent/v1/vision`, {
+    const schemaResponse = await fetch(`${page.url.origin}/api/agent/v1/generate`, {
                     method: 'POST',
                     headers: {
                         'X-API-Key': 'fortuna-major',
